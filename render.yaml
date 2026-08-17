@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: rag-voice-goa
+    env: python
+    buildCommand: "pip install -r requirements.txt && python scripts/build_index.py --langs hi --num-per-lang 200"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PIPELINE_MODE
+        value: live
+      - key: STT_PROVIDER
+        value: sarvam
+      - key: SARVAM_API_KEY
+        sync: false
+      - key: LLM_PROVIDER
+        value: sarvam
+      - key: LLM_API_KEY
+        sync: false
