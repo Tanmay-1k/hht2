@@ -1,0 +1,63 @@
+{
+  "config": {
+    "chunk_strategy": "hybrid",
+    "pipeline_mode": "mock",
+    "stt_provider": "sarvam",
+    "n_queries": 40
+  },
+  "retrieval_only": {
+    "p50_ms": 0.046,
+    "p70_ms": 0.05,
+    "p100_ms": 0.48,
+    "mean_ms": 0.059,
+    "n": 40
+  },
+  "end_to_end": {
+    "p50_ms": 0.033,
+    "p70_ms": 0.144,
+    "p100_ms": 0.386,
+    "mean_ms": 0.086,
+    "n": 40
+  },
+  "per_stage": {
+    "stt_ms": {
+      "p50_ms": 0.0,
+      "p70_ms": 0.0,
+      "p100_ms": 0.002,
+      "mean_ms": 0.0,
+      "n": 40
+    },
+    "input_guardrail_ms": {
+      "p50_ms": 0.024,
+      "p70_ms": 0.027,
+      "p100_ms": 0.064,
+      "mean_ms": 0.026,
+      "n": 40
+    },
+    "retrieval_ms": {
+      "p50_ms": 0.037,
+      "p70_ms": 0.039,
+      "p100_ms": 0.061,
+      "mean_ms": 0.039,
+      "n": 16
+    },
+    "generation_ms": {
+      "p50_ms": 0.006,
+      "p70_ms": 0.006,
+      "p100_ms": 0.095,
+      "mean_ms": 0.013,
+      "n": 16
+    },
+    "output_guardrail_ms": {
+      "p50_ms": 0.067,
+      "p70_ms": 0.071,
+      "p100_ms": 0.127,
+      "mean_ms": 0.077,
+      "n": 16
+    }
+  },
+  "refusals": 24,
+  "target_check": {
+    "retrieval_only_under_200ms_p100": true
+  }
+}

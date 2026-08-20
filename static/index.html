@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Voice RAG — HH Goa 2026</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; color: #1a1a1a; }
+  h1 { font-size: 1.4rem; }
+  button { padding: 10px 18px; font-size: 1rem; border-radius: 8px; border: 1px solid #333; cursor: pointer; background: #111; color: white; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  #recordBtn.recording { background: #c0392b; }
+  textarea { width: 100%; min-height: 60px; margin-top: 12px; font-size: 1rem; padding: 8px; }
+  .card { border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin-top: 16px; }
+  .refused { border-color: #c0392b; background: #fff5f5; }
+  .chunk { font-size: 0.85rem; background: #f4f4f4; padding: 8px; border-radius: 6px; margin-top: 6px; }
+  .lat { font-size: 0.8rem; color: #666; margin-top: 8px; }
+  pre { white-space: pre-wrap; }
+</style>
+</head>
+<body>
+  <h1>🎙️ Voice-Enabled RAG — HH Goa 2026</h1>
+  <p>Record a question, or type it below (text bypasses STT for quick testing).</p>
+
+  <button id="recordBtn">● Record</button>
+  <span id="recStatus"></span>
+
+  <textarea id="textInput" placeholder="...or type your question here and press Ask"></textarea>
+  <br/>
+  <button id="askBtn">Ask</button>
+
+  <div id="result"></div>
+
+<script>
+const recordBtn = document.getElementById('recordBtn');
+const askBtn = document.getElementById('askBtn');
+const textInput = document.getElementById('textInput');
+const resultDiv = document.getElementById('result');
+const recStatus = document.getElementById('recStatus');
+
+let mediaRecorder, chunks = [];
+
+recordBtn.onclick = async () => {
+  if (recordBtn.classList.contains('recording')) {
+    mediaRecorder.stop();
+    recordBtn.classList.remove('recording');
+    recordBtn.textContent = '● Record';
+    return;
+  }
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  mediaRecorder = new MediaRecorder(stream);
+  chunks = [];
+  mediaRecorder.ondataavailable = e => chunks.push(e.data);
+  mediaRecorder.onstop = async () => {
+    const blob = new Blob(chunks, { type: 'audio/webm' });
+    recStatus.textContent = 'Uploading...';
+    const form = new FormData();
+    form.append('file', blob, 'query.webm');
+    const res = await fetch('/query', { method: 'POST', body: form });
+    renderResult(await res.json());
+    recStatus.textContent = '';
+  };
+  mediaRecorder.start();
+  recordBtn.classList.add('recording');
+  recordBtn.textContent = '■ Stop';
+};
+
+askBtn.onclick = async () => {
+  const text = textInput.value.trim();
+  if (!text) return;
+  resultDiv.innerHTML = '<p>Thinking...</p>';
+  const res = await fetch('/query/text', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text })
+  });
+  renderResult(await res.json());
+};
+
+function renderResult(data) {
+  const refused = data.refused ? 'refused' : '';
+  const chunksHtml = (data.retrieved_chunks || [])
+    .map(c => `<div class="chunk"><b>[${c.strategy}] score=${c.score}</b><br/>${c.text}</div>`)
+    .join('');
+  resultDiv.innerHTML = `
+    <div class="card ${refused}">
+      <p><b>Transcript:</b> ${data.transcript || ''}</p>
+      <p><b>Answer:</b> ${data.answer || '(no answer)'}</p>
+      ${data.refused ? `<p><b>Refused:</b> ${data.refusal_reason}</p>` : ''}
+      <div>${chunksHtml}</div>
+      <div class="lat">Total latency: ${data.total_latency_ms} ms — ${JSON.stringify(data.latency_breakdown_ms)}</div>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
