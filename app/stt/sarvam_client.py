@@ -37,7 +37,10 @@ class SarvamSTT(BaseSTT):
     def _call_api(self, audio_bytes: bytes, language_hint: str | None) -> dict:
         headers = {"api-subscription-key": self.api_key}
         files = {"file": ("audio.wav", audio_bytes, "audio/wav")}
-        data = {"model": "saarika:v2"}
+        data = {
+    "model": "saaras:v3",
+    "mode": "transcribe",
+}
         if language_hint:
             data["language_code"] = language_hint
         with httpx.Client(timeout=self.timeout_s) as client:
